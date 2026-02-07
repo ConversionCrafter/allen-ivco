@@ -304,6 +304,32 @@ Supabase (儲存) → n8n (自動化) → Python (計算) → Payload CMS (展�
 
 ---
 
+## Supabase 連線策略（已驗證 2026-02-07）
+
+> **IPv4 問題已解決**：使用 Supavisor Session Pooler 繞過 IPv6 限制，無需 $4/月 IPv4 Add-on。
+
+### 連線規則
+
+| 環境 | DATABASE_URL | 說明 |
+|------|-------------|------|
+| 開發 (Docker) | `postgresql://ivc_user:ivc_password@localhost:5433/ivc_dev` | Docker PG 15 |
+| 開發 (Docker 容器內) | `postgresql://ivc_user:ivc_password@db:5432/ivc_dev` | Docker network |
+| 生產 (Supabase) | `postgresql://postgres.[REF]:[PWD]@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres` | Supavisor Session Pooler IPv4 |
+
+### 關鍵知識
+
+- **Region**: Tokyo (ap-northeast-1) — 台灣實測 47ms，最低延遲
+- **連線方式**: 必須用 Supavisor Session Pooler (`aws-0-*.pooler.supabase.com:5432`)
+- **禁止使用**: Direct Connection (`db.*.supabase.co`) — IPv6 only，台灣 ISP 不通
+- **Pooler username 格式**: `postgres.[PROJECT_REF]`（帶 project reference，非單純 `postgres`）
+- **Payload CMS**: `@payloadcms/db-postgres` (Drizzle ORM + node-postgres) 完全相容 Session Pooler
+- **Transaction Mode (port 6543)**: 不建議 Payload 使用，可能有 prepared statement 問題
+- **Free Plan 注意**: 7 天不活動自動暫停 DB，生產環境建議 Pro Plan ($25/月)
+- **RLS**: Payload 用 postgres 超級用戶連接，自動繞過 RLS。初期不啟用 RLS
+- **完整指南**: `docs/supabase-action-guide.md`
+
+---
+
 ## Key Concepts
 
 ### 業主盈餘 (Owner Earnings)

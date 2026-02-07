@@ -151,7 +151,7 @@ of complexity is the minimum needed for the current task.
 |-------|-----------|----------------|
 | CMS | Payload CMS | 3.75.x + Next.js 15 (App Router) |
 | Database (dev) | PostgreSQL | 15-alpine via Docker |
-| Database (prod) | Supabase | PostgreSQL — pending IPv4 region |
+| Database (prod) | Supabase | PostgreSQL — Tokyo (ap-northeast-1), Supavisor Session Pooler IPv4 |
 | Automation | n8n | Docker container |
 | CLI Tools | TypeScript / Python | Node 22 LTS, Python 3.11+ |
 | Vector Search | Qdrant | Planned (Phase 5) |
@@ -215,4 +215,4 @@ Do not push through ambiguity with brute force.
 - **Runtime guidance**: See `CLAUDE.md` at project root for role
   definitions (Allen, Jane, Chi) and IVC Framework details.
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-07 | **Last Amended**: 2026-02-07
+**Version**: 1.1.1 | **Ratified**: 2026-02-07 | **Last Amended**: 2026-02-07
