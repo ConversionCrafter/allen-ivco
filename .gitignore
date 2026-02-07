@@ -2,6 +2,7 @@
 .env.docker
 .env.production
 .env.backup
+scripts/.env.bird
 
 # OS
 .DS_Store
