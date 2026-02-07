@@ -78,6 +78,28 @@ export const Companies: CollectionConfig = {
               },
             },
             {
+              name: 'monitoring_level',
+              type: 'select',
+              label: '監控強度',
+              defaultValue: 'routine',
+              options: [
+                { label: '📡 例行收集', value: 'routine' },
+                { label: '⚡ 加強監控', value: 'enhanced' },
+                { label: '🔥 緊迫盯人', value: 'intensive' },
+              ],
+              admin: {
+                description: 'routine=季報/年報時收集, enhanced=每週, intensive=每日',
+              },
+            },
+            {
+              name: 'monitoring_keywords',
+              type: 'text',
+              label: '監控關鍵字',
+              admin: {
+                description: '用逗號分隔，如：paypal, $pypl, dan schulman',
+              },
+            },
+            {
               name: 'notes',
               type: 'textarea',
               label: '備註',

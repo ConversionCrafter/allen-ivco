@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     companies: Company;
+    'company-events': CompanyEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
+    'company-events': CompanyEventsSelect<false> | CompanyEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -187,6 +189,14 @@ export interface Company {
    * IR 網站或公司官網
    */
   website?: string | null;
+  /**
+   * routine=季報/年報時收集, enhanced=每週, intensive=每日
+   */
+  monitoring_level?: ('routine' | 'enhanced' | 'intensive') | null;
+  /**
+   * 用逗號分隔，如：paypal, $pypl, dan schulman
+   */
+  monitoring_keywords?: string | null;
   /**
    * 其他重要資訊或觀察
    */
@@ -324,6 +334,43 @@ export interface Company {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "company-events".
+ */
+export interface CompanyEvent {
+  id: number;
+  company: number | Company;
+  /**
+   * 事件發生或發現的時間
+   */
+  event_date: string;
+  source: 'x-twitter' | 'news' | 'sec-filing' | 'earnings-call' | 'financial-report' | 'company-announcement' | 'other';
+  importance?: ('low' | 'medium' | 'high' | 'critical') | null;
+  /**
+   * 簡短描述事件（一行）
+   */
+  title: string;
+  /**
+   * 事件重點摘要（幾句話）
+   */
+  summary?: string | null;
+  /**
+   * 完整原文或截取內容
+   */
+  raw_content?: string | null;
+  source_url?: string | null;
+  /**
+   * 用逗號分隔，如：revenue, layoff, new-product
+   */
+  keywords?: string | null;
+  /**
+   * 此事件對 IVC 信心係數的潛在影響方向
+   */
+  ivc_impact?: ('positive' | 'neutral' | 'negative' | 'pending') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -357,6 +404,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'companies';
         value: number | Company;
+      } | null)
+    | ({
+        relationTo: 'company-events';
+        value: number | CompanyEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -451,6 +502,8 @@ export interface CompaniesSelect<T extends boolean = true> {
   industry?: T;
   country?: T;
   website?: T;
+  monitoring_level?: T;
+  monitoring_keywords?: T;
   notes?: T;
   integrity_score?: T;
   integrity_status?: T;
@@ -473,6 +526,24 @@ export interface CompaniesSelect<T extends boolean = true> {
   investment_decision?: T;
   stress_test_50?: T;
   navigation_notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "company-events_select".
+ */
+export interface CompanyEventsSelect<T extends boolean = true> {
+  company?: T;
+  event_date?: T;
+  source?: T;
+  importance?: T;
+  title?: T;
+  summary?: T;
+  raw_content?: T;
+  source_url?: T;
+  keywords?: T;
+  ivc_impact?: T;
   updatedAt?: T;
   createdAt?: T;
 }
