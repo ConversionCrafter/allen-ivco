@@ -4,6 +4,7 @@ import json
 from ivco_calc.owner_earnings import calc_owner_earnings
 from ivco_calc.cagr import calc_cagr
 from ivco_calc.dcf import calc_three_stage_dcf
+from ivco_calc.verify import verify_iv_range
 
 @click.group()
 @click.version_option(version="0.1.0")
@@ -82,6 +83,23 @@ def calc_iv_cmd(latest_oe, cagr, cc_low, cc_high, stage2_cagr, stage3_cagr,
         share_par_value=share_par_value,
     )
     output_json(result)
+
+@cli.command("verify")
+@click.option("--computed-low", type=int, required=True)
+@click.option("--computed-high", type=int, required=True)
+@click.option("--expected-low", type=int, required=True)
+@click.option("--expected-high", type=int, required=True)
+@click.option("--tolerance", type=int, default=0)
+def verify_cmd(computed_low, computed_high, expected_low, expected_high, tolerance):
+    """Verify computed IV Range against expected values."""
+    result = verify_iv_range(
+        computed_low=computed_low, computed_high=computed_high,
+        expected_low=expected_low, expected_high=expected_high,
+        tolerance=tolerance,
+    )
+    output_json(result)
+    if result["status"] == "FAIL":
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     cli()
