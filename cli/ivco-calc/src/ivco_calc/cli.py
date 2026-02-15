@@ -5,6 +5,7 @@ from ivco_calc.owner_earnings import calc_owner_earnings
 from ivco_calc.cagr import calc_cagr
 from ivco_calc.dcf import calc_three_stage_dcf
 from ivco_calc.verify import verify_iv_range
+from ivco_calc.tools_registry import list_tools, get_tool_info
 
 @click.group()
 @click.version_option(version="0.1.0")
@@ -208,6 +209,25 @@ def analyze_cmd(ticker, years, maintenance_ratio, cc_low, cc_high,
             "discount_rate": discount_rate,
         },
     })
+
+@cli.command("list-tools")
+@click.option("--layer", type=int, help="Filter by layer (1=primitive, 2=composed, 3=agent)")
+def list_tools_cmd(layer):
+    """Discover all available IVCO tools (agent-discoverable)."""
+    tools = list_tools()
+    if layer is not None:
+        tools = [t for t in tools if t["layer"] == layer]
+    output_json(tools)
+
+@cli.command("tool-info")
+@click.argument("name")
+def tool_info_cmd(name):
+    """Get detailed info about a specific tool."""
+    info = get_tool_info(name)
+    if info is None:
+        click.echo(json.dumps({"error": f"Tool '{name}' not found. Use 'ivco list-tools' to see available tools."}))
+        raise SystemExit(1)
+    output_json(info)
 
 if __name__ == "__main__":
     cli()
