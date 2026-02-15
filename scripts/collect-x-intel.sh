@@ -40,7 +40,7 @@ mkdir -p "$TMP_DIR" "$LOG_DIR" "$QUEUE_DIR"
 # Load X API bearer token from secure location
 X_ENV="$HOME/.config/env/global.env"
 if [ -f "$X_ENV" ]; then
-  export X_BEARER_TOKEN=$(grep '^X_BEARER_TOKEN=' "$X_ENV" | cut -d= -f2)
+  export X_BEARER_TOKEN=$(grep '^X_BEARER_TOKEN=' "$X_ENV" | cut -d= -f2- || true)
 else
   echo "[$(date -Iseconds)] ERROR: global.env not found at $X_ENV" >> "$LOG_FILE"
   exit 1
@@ -74,14 +74,18 @@ if [ "$queue_count" -gt 0 ]; then
   flushed=0
   for qfile in "$QUEUE_DIR"/*.json; do
     [ -f "$qfile" ] || continue
-    stored=$("$PYTHON" "$SCRIPT_DIR/ivco-collect" \
+    result=$("$PYTHON" "$SCRIPT_DIR/ivco-collect" \
       --input "$qfile" \
       --api "$PAYLOAD_API" \
       --company-id "$PAYPAL_COMPANY_ID" \
-      --keyword "queue-retry" 2>> "$LOG_FILE")
-    if [ "$stored" -gt 0 ] 2>/dev/null; then
+      --keyword "queue-retry" \
+      --json 2>> "$LOG_FILE")
+    # Only delete queue file if all events stored and zero errors/queued
+    q_stored=$("$PYTHON" -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('stored',0))" "$result" 2>/dev/null || echo "0")
+    q_errors=$("$PYTHON" -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('errors',0)+d.get('queued',0))" "$result" 2>/dev/null || echo "1")
+    if [ "$q_stored" -gt 0 ] && [ "$q_errors" -eq 0 ] 2>/dev/null; then
       rm -f "$qfile"
-      flushed=$((flushed + stored))
+      flushed=$((flushed + q_stored))
     fi
   done
   log "  Queue flush: ${flushed} events recovered"

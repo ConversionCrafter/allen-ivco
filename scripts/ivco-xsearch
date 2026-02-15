@@ -8,7 +8,7 @@ Auth: X_BEARER_TOKEN from ~/.config/env/global.env
 Usage:
   ivco-xsearch "paypal" -n 10
   ivco-xsearch "\$PYPL earnings" -n 5
-  ivco-xsearch "paypal OR PYPL" -n 20 --no-retweets
+  ivco-xsearch "paypal OR PYPL" -n 20 --include-retweets
 
 Cost: ~$0.005 per tweet read (24h dedup). 10 tweets = $0.05.
 """
