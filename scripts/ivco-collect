@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 """ivco-collect — Store external data into IVCO CompanyEvents.
 
-First atomic CLI tool in the ivco-* namespace.
-Reads structured JSON (bird, future: news APIs) and POSTs to Payload CMS.
+Reads structured JSON (ivco-xsearch, bird, future: news APIs) and POSTs to Payload CMS.
+When CMS is unreachable, queues events to local files for retry on next run.
 
 Usage:
   ivco-collect --help
-  ivco-collect --input tweets.json --company-id 2 --keyword "paypal" --source x-twitter
+  ivco-collect --input tweets.json --company-id 2 --keyword "paypal"
   ivco-collect --input tweets.json --company-id 2 --keyword "PYPL" --api http://localhost:3000/api/company-events
+  ivco-collect --input tweets.json --company-id 2 --keyword "paypal" --queue-dir /tmp/ivco-collect-queue
   cat tweets.json | ivco-collect --stdin --company-id 2 --keyword "paypal"
 
-Input format (bird search --json):
+Input format (bird-compatible / ivco-xsearch output):
   [{"id": "...", "text": "...", "createdAt": "...", "author": {"username": "...", "name": "..."}}]
 
-Output (stdout): JSON summary {"stored": N, "skipped": N, "errors": N}
+Output (stdout): stored count (integer) for backward compatibility with collect-x-intel.sh
 Logs (stderr): per-item status
 """
 
 import argparse
 import json
+import os
 import sys
 import urllib.request
 import urllib.error
@@ -27,8 +29,39 @@ from datetime import datetime, timezone
 DEFAULT_API = "http://localhost:3000/api/company-events"
 
 
-def parse_bird_tweet(tweet: dict, keyword: str, company_id: int) -> dict:
-    """Transform a bird JSON tweet into a CompanyEvent payload."""
+def parse_date(date_str: str) -> str:
+    """Parse date from various formats to ISO 8601.
+
+    Handles:
+    - ISO 8601: "2026-02-15T12:00:00.000Z" (X API v2 / ivco-xsearch)
+    - Twitter legacy: "Sat Feb 15 12:00:00 +0000 2026" (bird CLI)
+    """
+    if not date_str:
+        return datetime.now(timezone.utc).isoformat()
+
+    # Try ISO 8601 first (X API v2 format)
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z"):
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.isoformat()
+        except ValueError:
+            continue
+
+    # Try Twitter legacy format (bird CLI)
+    try:
+        dt = datetime.strptime(date_str, "%a %b %d %H:%M:%S %z %Y")
+        return dt.isoformat()
+    except ValueError:
+        pass
+
+    # Last resort: return as-is or current time
+    return datetime.now(timezone.utc).isoformat()
+
+
+def parse_tweet(tweet: dict, keyword: str, company_id: int) -> dict:
+    """Transform a bird/ivco-xsearch JSON tweet into a CompanyEvent payload."""
     tweet_id = tweet.get("id", "")
     text = tweet.get("text", "")
     created_at = tweet.get("createdAt", "")
@@ -37,12 +70,7 @@ def parse_bird_tweet(tweet: dict, keyword: str, company_id: int) -> dict:
     name = author.get("name", "unknown")
     url = f"https://x.com/{username}/status/{tweet_id}"
 
-    # Convert Twitter date to ISO
-    try:
-        dt = datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y")
-        iso_date = dt.isoformat()
-    except (ValueError, TypeError):
-        iso_date = datetime.now(timezone.utc).isoformat()
+    iso_date = parse_date(created_at)
 
     # Title: first 80 chars, single line
     title_text = text.replace("\n", " ")[:80]
@@ -72,13 +100,29 @@ def post_event(api_url: str, event: dict) -> bool:
         method="POST",
     )
     try:
-        resp = urllib.request.urlopen(req)
+        resp = urllib.request.urlopen(req, timeout=10)
         return resp.status == 201
     except urllib.error.HTTPError as e:
         print(f"  ERROR: HTTP {e.code} for {event.get('source_url', '?')}", file=sys.stderr)
         return False
-    except Exception as e:
+    except (urllib.error.URLError, OSError) as e:
         print(f"  ERROR: {e}", file=sys.stderr)
+        return False
+
+
+def queue_event(queue_dir: str, event: dict, tweet_id: str) -> bool:
+    """Save event to local queue file for later retry."""
+    os.makedirs(queue_dir, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    path = os.path.join(queue_dir, f"{ts}-{tweet_id}.json")
+    try:
+        # Wrap single event in array (ivco-collect reads arrays)
+        with open(path, "w") as f:
+            json.dump([event], f, ensure_ascii=False)
+        print(f"  QUEUED: {event.get('source_url', '?')} → {path}", file=sys.stderr)
+        return True
+    except OSError as e:
+        print(f"  QUEUE-ERROR: {e}", file=sys.stderr)
         return False
 
 
@@ -87,12 +131,13 @@ def main():
         prog="ivco-collect",
         description="Store external data (tweets, news) into IVCO CompanyEvents.",
     )
-    parser.add_argument("--input", help="Path to JSON results file (bird search --json)")
+    parser.add_argument("--input", help="Path to JSON results file")
     parser.add_argument("--stdin", action="store_true", help="Read JSON from stdin")
     parser.add_argument("--api", default=DEFAULT_API, help=f"Payload API endpoint (default: {DEFAULT_API})")
     parser.add_argument("--company-id", type=int, required=True, help="Company ID in Payload CMS")
     parser.add_argument("--keyword", required=True, help="Search keyword used")
     parser.add_argument("--source", default="x-twitter", help="Event source type (default: x-twitter)")
+    parser.add_argument("--queue-dir", help="Directory for failed POST queue (enables fallback)")
     parser.add_argument("--dry-run", action="store_true", help="Parse and validate without posting")
     parser.add_argument("--json", action="store_true", dest="json_output", help="Output JSON summary to stdout")
     args = parser.parse_args()
@@ -121,9 +166,10 @@ def main():
     stored = 0
     skipped = 0
     errors = 0
+    queued = 0
 
     for t in tweets:
-        event = parse_bird_tweet(t, args.keyword, args.company_id)
+        event = parse_tweet(t, args.keyword, args.company_id)
 
         if args.dry_run:
             print(f"  DRY-RUN: {event['source_url']}", file=sys.stderr)
@@ -133,15 +179,25 @@ def main():
         if post_event(args.api, event):
             stored += 1
             print(f"  STORED: {event['source_url']}", file=sys.stderr)
+        elif args.queue_dir:
+            # CMS unreachable — queue for retry
+            tweet_id = t.get("id", "unknown")
+            if queue_event(args.queue_dir, event, tweet_id):
+                queued += 1
+            else:
+                errors += 1
         else:
             errors += 1
 
-    summary = {"stored": stored, "skipped": skipped, "errors": errors, "total": len(tweets)}
+    if queued > 0:
+        print(f"  NOTICE: {queued} events queued for retry in {args.queue_dir}", file=sys.stderr)
+
+    summary = {"stored": stored, "skipped": skipped, "errors": errors, "queued": queued, "total": len(tweets)}
 
     if args.json_output:
         print(json.dumps(summary))
     else:
-        # Backward compatible: just print stored count (used by collect-x-intel.sh)
+        # Backward compatible: just print stored count
         print(stored)
 
 
