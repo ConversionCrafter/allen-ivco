@@ -48,7 +48,7 @@ Adjusted CAGR = Historical OE CAGR x Confidence Coefficient
 
 If a company's historical CAGR is 17.66% and your CC is 1.2x, your adjusted CAGR becomes 21.19%. If your CC is 1.5x, it's 26.49%.
 
-Notice what happened: you didn't get a single growth rate. You got a *range*. And that range feeds directly into a [Three-Stage DCF](/three-stage-dcf-philosophy-to-algorithm) that produces an intrinsic value *range* — not a point estimate.
+Notice what happened: you didn't get a single growth rate. You got a *range*. And that range feeds directly into a [Three-Stage DCF](/blog/three-stage-dcf-philosophy-to-algorithm) that produces an intrinsic value *range* — not a point estimate.
 
 This is deliberate. The CC exists precisely because the future is uncertain, and pretending otherwise is the most dangerous thing a value investor can do.
 
@@ -131,7 +131,7 @@ New earnings call reveals accelerated capex timeline? CC goes up. Management mis
 
 This is Fisher's scuttlebutt method, quantified. Fisher spent his career talking to suppliers, customers, employees — anyone who could give him a signal about a company's real trajectory. The CC takes those signals and converts them into a mathematical input.
 
-And because the CC feeds directly into a [Three-Stage DCF](/three-stage-dcf-philosophy-to-algorithm), every adjustment ripples through the entire valuation. Change the CC, and your intrinsic value range shifts. Automatically.
+And because the CC feeds directly into a [Three-Stage DCF](/blog/three-stage-dcf-philosophy-to-algorithm), every adjustment ripples through the entire valuation. Change the CC, and your intrinsic value range shifts. Automatically.
 
 That's the system we're building at IVCO (Intrinsic Value Confidence Observatory). Not a static spreadsheet. A living, breathing valuation engine that updates as the world changes.
 
@@ -219,7 +219,7 @@ Here's what the system tracks, all from public information:
 
 The beauty of this approach is that it turns Fisher's qualitative "scuttlebutt" into structured data. Instead of relying on phone calls and personal networks, IVCO monitors the public record continuously and surfaces the signals that matter.
 
-And because the CC feeds into the [Three-Stage DCF](/three-stage-dcf-philosophy-to-algorithm) automatically, every signal that shifts the CC produces an updated intrinsic value range. In real-time.
+And because the CC feeds into the [Three-Stage DCF](/blog/three-stage-dcf-philosophy-to-algorithm) automatically, every signal that shifts the CC produces an updated intrinsic value range. In real-time.
 
 No analyst visit required. No quarterly model rebuild. Just a system that watches, measures, and adjusts — the way Graham, Buffett, Fisher, and Munger always said investing should be done, but never had the technology to automate.
 
