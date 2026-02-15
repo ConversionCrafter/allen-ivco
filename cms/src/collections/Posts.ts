@@ -4,18 +4,19 @@ export const Posts: CollectionConfig = {
   slug: 'posts',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'category', 'status', 'publishedAt'],
+    defaultColumns: ['title', 'author', 'category', 'status', 'publishedAt'],
     group: 'Blog',
   },
   access: {
     read: () => true,
   },
   fields: [
+    // === Core Content ===
     {
       name: 'title',
       type: 'text',
       required: true,
-      label: '標題',
+      label: 'Title',
     },
     {
       name: 'slug',
@@ -23,55 +24,193 @@ export const Posts: CollectionConfig = {
       required: true,
       unique: true,
       label: 'Slug',
-      admin: {
-        description: 'URL path (e.g. tsmc-intrinsic-value-2026)',
+      validate: (value: string | null | undefined) => {
+        if (!value) return 'Slug is required'
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
+          return 'Slug must be lowercase alphanumeric with hyphens only'
+        }
+        return true
       },
+      admin: {
+        description: 'URL path (e.g. tsmc-intrinsic-value-case-study)',
+      },
+    },
+    {
+      name: 'author',
+      type: 'relationship',
+      relationTo: 'authors',
+      required: true,
+      label: 'Author',
     },
     {
       name: 'content',
       type: 'richText',
       required: true,
-      label: '內容',
+      label: 'Content',
     },
     {
       name: 'excerpt',
       type: 'textarea',
-      label: '摘要',
+      label: 'Excerpt',
       admin: {
-        description: 'SEO description and preview text (max 160 chars)',
+        description: 'Preview text for cards and RSS (optional, falls back to seo.description)',
       },
     },
     {
       name: 'category',
       type: 'relationship',
       relationTo: 'categories',
-      label: '分類',
+      required: true,
+      label: 'Category',
+    },
+    {
+      name: 'tags',
+      type: 'array',
+      label: 'Tags',
+      fields: [
+        {
+          name: 'tag',
+          type: 'text',
+          required: true,
+        },
+      ],
+    },
+    {
+      name: 'relatedCompany',
+      type: 'relationship',
+      relationTo: 'companies',
+      label: 'Related Company',
+      admin: {
+        description: 'Link to company if this is a case study or analysis',
+      },
     },
     {
       name: 'coverImage',
       type: 'upload',
       relationTo: 'media',
-      label: '封面圖片',
+      label: 'Cover Image',
     },
     {
       name: 'status',
       type: 'select',
       required: true,
       defaultValue: 'draft',
-      label: '狀態',
+      label: 'Status',
       options: [
         { label: 'Draft', value: 'draft' },
+        { label: 'AI Reviewing', value: 'ai_reviewing' },
+        { label: 'Ready', value: 'ready' },
         { label: 'Published', value: 'published' },
       ],
     },
     {
       name: 'publishedAt',
       type: 'date',
-      label: '發布日期',
+      label: 'Published At',
       admin: {
         date: { pickerAppearance: 'dayAndTime' },
         condition: (data) => data?.status === 'published',
       },
+    },
+
+    // === SEO (Required — Allen directive: baked into CMS, not afterthought) ===
+    {
+      name: 'seo',
+      type: 'group',
+      label: 'SEO',
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          required: true,
+          maxLength: 60,
+          label: 'SEO Title',
+          admin: {
+            description: 'SERP title (max 60 characters)',
+          },
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          required: true,
+          maxLength: 160,
+          label: 'Meta Description',
+          admin: {
+            description: 'SERP description (max 160 characters)',
+          },
+        },
+        {
+          name: 'ogImage',
+          type: 'upload',
+          relationTo: 'media',
+          required: true,
+          label: 'OG Image',
+          admin: {
+            description: 'Social sharing preview image (1200x630px recommended)',
+          },
+        },
+        {
+          name: 'canonicalUrl',
+          type: 'text',
+          label: 'Canonical URL',
+          admin: {
+            description: 'Only if cross-posted elsewhere',
+          },
+        },
+      ],
+    },
+
+    // === FAQ (Required — auto-generates FAQPage JSON-LD) ===
+    {
+      name: 'faq',
+      type: 'array',
+      required: true,
+      minRows: 3,
+      label: 'FAQ (min 3 questions)',
+      admin: {
+        description: 'Required for FAQPage structured data. Minimum 3 Q&A pairs.',
+      },
+      fields: [
+        {
+          name: 'question',
+          type: 'text',
+          required: true,
+          label: 'Question',
+        },
+        {
+          name: 'answer',
+          type: 'textarea',
+          required: true,
+          label: 'Answer',
+        },
+      ],
+    },
+
+    // === Schema Options ===
+    {
+      name: 'schema',
+      type: 'group',
+      label: 'Structured Data',
+      fields: [
+        {
+          name: 'enableHowTo',
+          type: 'checkbox',
+          label: 'Enable HowTo Schema',
+          defaultValue: false,
+          admin: {
+            description: 'Turn on for step-by-step articles (e.g. TSMC Case Study)',
+          },
+        },
+        {
+          name: 'authorBio',
+          type: 'textarea',
+          required: true,
+          label: 'Author Bio (for this article)',
+          admin: {
+            description: 'E-E-A-T signal — author bio specific to this article\'s topic',
+          },
+        },
+      ],
     },
   ],
 }

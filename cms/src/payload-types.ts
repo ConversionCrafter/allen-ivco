@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    authors: Author;
     companies: Company;
     'company-events': CompanyEvent;
     categories: Category;
@@ -82,6 +83,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    authors: AuthorsSelect<false> | AuthorsSelect<true>;
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
     'company-events': CompanyEventsSelect<false> | CompanyEventsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -168,6 +170,21 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors".
+ */
+export interface Author {
+  id: number;
+  name: string;
+  /**
+   * Author bio for E-E-A-T signal (appears at bottom of articles)
+   */
+  bio: string;
+  avatar?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "companies".
  */
 export interface Company {
@@ -180,6 +197,10 @@ export interface Company {
    * 如：2330.TW, AAPL, MSFT
    */
   ticker: string;
+  /**
+   * Primary stock exchange listing
+   */
+  exchange?: ('NYSE' | 'NASDAQ' | 'TPE' | 'HKEX' | 'other') | null;
   status: 'watching' | 'analyzing' | 'holding' | 'excluded';
   /**
    * 如：半導體、軟體、金融
@@ -241,6 +262,10 @@ export interface Company {
    * 流通在外股數
    */
   total_shares?: number | null;
+  /**
+   * Allen Framework parameter: fraction of capex that is maintenance (e.g. 0.20 for TSMC)
+   */
+  maintenance_capex_ratio?: number | null;
   /**
    * 財報來源、計算方法、特殊調整等
    */
@@ -395,9 +420,10 @@ export interface Post {
   id: number;
   title: string;
   /**
-   * URL path (e.g. tsmc-intrinsic-value-2026)
+   * URL path (e.g. tsmc-intrinsic-value-case-study)
    */
   slug: string;
+  author: number | Author;
   content: {
     root: {
       type: string;
@@ -414,13 +440,59 @@ export interface Post {
     [k: string]: unknown;
   };
   /**
-   * SEO description and preview text (max 160 chars)
+   * Preview text for cards and RSS (optional, falls back to seo.description)
    */
   excerpt?: string | null;
-  category?: (number | null) | Category;
+  category: number | Category;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Link to company if this is a case study or analysis
+   */
+  relatedCompany?: (number | null) | Company;
   coverImage?: (number | null) | Media;
-  status: 'draft' | 'published';
+  status: 'draft' | 'ai_reviewing' | 'ready' | 'published';
   publishedAt?: string | null;
+  seo: {
+    /**
+     * SERP title (max 60 characters)
+     */
+    title: string;
+    /**
+     * SERP description (max 160 characters)
+     */
+    description: string;
+    /**
+     * Social sharing preview image (1200x630px recommended)
+     */
+    ogImage: number | Media;
+    /**
+     * Only if cross-posted elsewhere
+     */
+    canonicalUrl?: string | null;
+  };
+  /**
+   * Required for FAQPage structured data. Minimum 3 Q&A pairs.
+   */
+  faq: {
+    question: string;
+    answer: string;
+    id?: string | null;
+  }[];
+  schema: {
+    /**
+     * Turn on for step-by-step articles (e.g. TSMC Case Study)
+     */
+    enableHowTo?: boolean | null;
+    /**
+     * E-E-A-T signal — author bio specific to this article's topic
+     */
+    authorBio: string;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -455,6 +527,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'authors';
+        value: number | Author;
       } | null)
     | ({
         relationTo: 'companies';
@@ -556,11 +632,23 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors_select".
+ */
+export interface AuthorsSelect<T extends boolean = true> {
+  name?: T;
+  bio?: T;
+  avatar?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "companies_select".
  */
 export interface CompaniesSelect<T extends boolean = true> {
   name?: T;
   ticker?: T;
+  exchange?: T;
   status?: T;
   industry?: T;
   country?: T;
@@ -575,6 +663,7 @@ export interface CompaniesSelect<T extends boolean = true> {
   oe_currency?: T;
   historical_cagr_7y?: T;
   total_shares?: T;
+  maintenance_capex_ratio?: T;
   historical_notes?: T;
   confidence_low?: T;
   confidence_high?: T;
@@ -627,12 +716,41 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  author?: T;
   content?: T;
   excerpt?: T;
   category?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  relatedCompany?: T;
   coverImage?: T;
   status?: T;
   publishedAt?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogImage?: T;
+        canonicalUrl?: T;
+      };
+  faq?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  schema?:
+    | T
+    | {
+        enableHowTo?: T;
+        authorBio?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
