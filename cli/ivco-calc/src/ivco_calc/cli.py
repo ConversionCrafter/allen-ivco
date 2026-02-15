@@ -101,5 +101,24 @@ def verify_cmd(computed_low, computed_high, expected_low, expected_high, toleran
     if result["status"] == "FAIL":
         raise SystemExit(1)
 
+@cli.command("fetch")
+@click.option("--ticker", type=str, required=True, help="Stock ticker (e.g. TSM, AAPL)")
+@click.option("--years", type=int, default=10, help="Number of years to fetch")
+@click.option("--source", type=click.Choice(["fmp"]), default="fmp", help="Data source")
+def fetch_cmd(ticker, years, source):
+    """Fetch financial data from external API."""
+    from ivco_calc.fetchers.fmp import FMPFetcher
+    fetcher = FMPFetcher()
+    income = fetcher.fetch_income_statements(ticker, limit=years)
+    balance = fetcher.fetch_balance_sheet(ticker, limit=years)
+    quote = fetcher.fetch_quote(ticker)
+    output_json({
+        "ticker": ticker,
+        "source": source,
+        "income_statements": income,
+        "balance_sheet": balance,
+        "quote": quote,
+    })
+
 if __name__ == "__main__":
     cli()
