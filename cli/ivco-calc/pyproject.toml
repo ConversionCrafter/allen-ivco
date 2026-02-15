@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ivco-calc"
-version = "0.1.0"
+version = "0.2.0"
 description = "IVCO calculation engine — three-tier calibration + three-stage DCF"
 requires-python = ">=3.10"
 dependencies = ["click>=8.0"]

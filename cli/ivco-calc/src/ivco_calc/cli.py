@@ -8,7 +8,7 @@ from ivco_calc.verify import verify_iv_range
 from ivco_calc.tools_registry import list_tools, get_tool_info
 
 @click.group()
-@click.version_option(version="0.1.0")
+@click.version_option(version="0.2.0")
 def cli():
     """IVCO — Intrinsic Value Confidence Observatory CLI tools."""
     pass
