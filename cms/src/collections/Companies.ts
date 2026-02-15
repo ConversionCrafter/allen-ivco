@@ -41,6 +41,21 @@ export const Companies: CollectionConfig = {
               },
             },
             {
+              name: 'exchange',
+              type: 'select',
+              label: 'Exchange',
+              options: [
+                { label: 'NYSE', value: 'NYSE' },
+                { label: 'NASDAQ', value: 'NASDAQ' },
+                { label: 'TPE (Taiwan)', value: 'TPE' },
+                { label: 'HKEX (Hong Kong)', value: 'HKEX' },
+                { label: 'Other', value: 'other' },
+              ],
+              admin: {
+                description: 'Primary stock exchange listing',
+              },
+            },
+            {
               name: 'status',
               type: 'select',
               required: true,
@@ -183,6 +198,17 @@ export const Companies: CollectionConfig = {
               label: '總股本（股）',
               admin: {
                 description: '流通在外股數',
+              },
+            },
+            {
+              name: 'maintenance_capex_ratio',
+              type: 'number',
+              label: 'Maintenance CapEx Ratio',
+              min: 0,
+              max: 1,
+              admin: {
+                description: 'Allen Framework parameter: fraction of capex that is maintenance (e.g. 0.20 for TSMC)',
+                step: 0.01,
               },
             },
             {
