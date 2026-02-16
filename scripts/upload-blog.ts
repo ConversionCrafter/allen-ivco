@@ -91,11 +91,22 @@ function tableNode(rows: LexicalNode[]): LexicalNode {
   return { type: 'table', children: rows, direction: 'ltr', format: '', indent: 0, version: 1 }
 }
 
+/** Only allow safe URL protocols — blocks javascript: and data: injection */
+function sanitizeUrl(raw: string): string | null {
+  try {
+    const u = new URL(raw, 'https://ivco.ai')
+    if (['http:', 'https:', 'mailto:'].includes(u.protocol)) return u.toString()
+    return null
+  } catch { return null }
+}
+
 function linkNode(text: string, url: string, format: number = 0): LexicalNode {
+  const safeUrl = sanitizeUrl(url)
+  if (!safeUrl) return textNode(text, format)
   return {
     type: 'link',
     children: [textNode(text, format)],
-    fields: { url, linkType: 'custom', newTab: false },
+    fields: { url: safeUrl, linkType: 'custom', newTab: false },
     direction: 'ltr', format: '', indent: 0, version: 1,
   }
 }
@@ -353,6 +364,7 @@ async function login(email: string, password: string): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   })
+  if (!res.ok) throw new Error(`Login HTTP ${res.status}: ${res.statusText}`)
   const data = await res.json()
   if (!data.token) throw new Error(`Login failed: ${JSON.stringify(data)}`)
   return data.token
@@ -362,6 +374,7 @@ async function apiGet(collection: string, query: string = ''): Promise<any> {
   const res = await fetch(`${BASE_URL}/api/${collection}?${query}`, {
     headers: { Authorization: `JWT ${authToken}` },
   })
+  if (!res.ok) throw new Error(`GET ${collection} HTTP ${res.status}: ${res.statusText}`)
   return res.json()
 }
 
@@ -371,6 +384,7 @@ async function apiPost(collection: string, data: any): Promise<any> {
     headers: { 'Content-Type': 'application/json', Authorization: `JWT ${authToken}` },
     body: JSON.stringify(data),
   })
+  if (!res.ok) throw new Error(`POST ${collection} HTTP ${res.status}: ${res.statusText}`)
   const result = await res.json()
   if (result.errors) throw new Error(`Create failed: ${JSON.stringify(result.errors)}`)
   return result
@@ -477,7 +491,7 @@ async function main() {
   const categoryMap: Record<string, number> = {}
   for (let i = 0; i < CATEGORIES.length; i++) {
     const cat = CATEGORIES[i]
-    const existing = await apiGet('categories', `where[slug][equals]=${cat.slug}&limit=1`)
+    const existing = await apiGet('categories', `where[slug][equals]=${encodeURIComponent(cat.slug)}&limit=1`)
     if (existing.docs?.length > 0) {
       categoryMap[cat.slug] = existing.docs[0].id
       console.log(`  ${cat.name} → exists (id: ${categoryMap[cat.slug]})`)
@@ -506,7 +520,7 @@ async function main() {
 
   const tagMap: Record<string, number> = {}
   for (const tagSlug of allTagSlugs) {
-    const existing = await apiGet('tags', `where[slug][equals]=${tagSlug}&limit=1`)
+    const existing = await apiGet('tags', `where[slug][equals]=${encodeURIComponent(tagSlug)}&limit=1`)
     if (existing.docs?.length > 0) {
       tagMap[tagSlug] = existing.docs[0].id
       console.log(`  ${tagSlug} → exists (id: ${tagMap[tagSlug]})`)
@@ -528,7 +542,7 @@ async function main() {
     const { frontmatter, body } = parseFrontmatter(raw)
 
     // Check if already exists
-    const existing = await apiGet('posts', `where[slug][equals]=${frontmatter.slug}&limit=1`)
+    const existing = await apiGet('posts', `where[slug][equals]=${encodeURIComponent(frontmatter.slug)}&limit=1`)
     if (existing.docs?.length > 0) {
       console.log(`  ⏭  "${frontmatter.title}" → already exists, skipping`)
       continue

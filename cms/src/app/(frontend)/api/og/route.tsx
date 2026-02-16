@@ -15,6 +15,7 @@ const categoryColors: Record<string, string> = {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const { searchParams } = request.nextUrl
   const title = (searchParams.get('title') || 'IVCO Fisher').slice(0, 200)
   const category = searchParams.get('category') || 'framework'
@@ -90,6 +91,12 @@ export async function GET(request: NextRequest) {
     {
       width: 1200,
       height: 630,
+      headers: {
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+      },
     },
   )
+  } catch {
+    return new Response('OG image generation failed', { status: 500 })
+  }
 }

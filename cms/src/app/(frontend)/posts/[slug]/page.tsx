@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { cache } from 'react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Author, Category, Media, Tag, Series as SeriesType } from '@/payload-types'
@@ -66,6 +67,8 @@ export default async function PostPage({
     publishedAt: post.publishedAt || post.createdAt,
     modifiedAt: post.updatedAt,
     ogImageUrl: ogImageUrl.startsWith('/') ? `https://ivco.ai${ogImageUrl}` : ogImageUrl,
+    category: category?.name,
+    tags: tags.map((t) => t.name),
   })
 
   const faqSchema =
@@ -119,7 +122,7 @@ export default async function PostPage({
         />
       )}
 
-      <a href="/">&larr; Back</a>
+      <Link href="/">&larr; Back</Link>
       <h1>{post.title}</h1>
       <p className="post-meta">
         By {author.name}
@@ -134,10 +137,10 @@ export default async function PostPage({
             })}
           </>
         )}
-        {(post as any).readingTime && (
+        {post.readingTime && (
           <>
             {' '}
-            &middot; {(post as any).readingTime} min read
+            &middot; {post.readingTime} min read
           </>
         )}
         {category && (
@@ -223,12 +226,12 @@ export default async function PostPage({
           }}
         >
           {prevPost ? (
-            <a href={`/posts/${prevPost.slug}`}>&larr; {prevPost.title}</a>
+            <Link href={`/posts/${prevPost.slug}`}>&larr; {prevPost.title}</Link>
           ) : (
             <span />
           )}
           {nextPost ? (
-            <a href={`/posts/${nextPost.slug}`}>{nextPost.title} &rarr;</a>
+            <Link href={`/posts/${nextPost.slug}`}>{nextPost.title} &rarr;</Link>
           ) : (
             <span />
           )}
@@ -270,29 +273,35 @@ export async function generateMetadata({
     }
   }
 
+  const seoTitle = post.seo?.title || post.title
+  const seoDesc = post.seo?.description || ''
+  const categorySlug = (post.category as Category)?.slug || 'framework'
+
   // Get OG image URL — runtime type guard for populated vs ID-only
-  const ogImage = resolveOgImage(post.seo.ogImage)
+  const ogImage = resolveOgImage(post.seo?.ogImage)
   const ogImageUrl =
     ogImage?.url ||
-    `/api/og?title=${encodeURIComponent(post.title)}&category=${
-      (post.category as Category)?.slug || 'framework'
-    }`
+    `/api/og?title=${encodeURIComponent(post.title)}&category=${categorySlug}`
 
   return {
-    title: `${post.seo.title} — IVCO Fisher`,
-    description: post.seo.description,
+    title: `${seoTitle} — IVCO Fisher`,
+    description: seoDesc,
     openGraph: {
-      title: post.seo.title,
-      description: post.seo.description,
+      title: seoTitle,
+      description: seoDesc,
       type: 'article',
+      url: `https://ivco.ai/posts/${post.slug}`,
+      publishedTime: post.publishedAt || undefined,
+      modifiedTime: post.updatedAt || undefined,
       images: [ogImageUrl],
     },
     twitter: {
       card: 'summary_large_image',
-      title: post.seo.title,
-      description: post.seo.description,
+      title: seoTitle,
+      description: seoDesc,
       images: [ogImageUrl],
+      creator: '@ivco_fisher',
     },
-    ...(post.seo.canonicalUrl && { alternates: { canonical: post.seo.canonicalUrl } }),
+    ...(post.seo?.canonicalUrl && { alternates: { canonical: post.seo.canonicalUrl } }),
   }
 }

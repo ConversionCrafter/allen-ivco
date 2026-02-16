@@ -7,6 +7,8 @@ interface ArticleInput {
   publishedAt: string
   modifiedAt?: string
   ogImageUrl: string
+  category?: string
+  tags?: string[]
 }
 
 interface FAQItem {
@@ -21,13 +23,18 @@ export function generateArticleSchema(input: ArticleInput) {
     headline: input.title,
     description: input.description,
     url: `https://ivco.ai/${input.slug}`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://ivco.ai/${input.slug}` },
     image: input.ogImageUrl,
+    inLanguage: 'en-US',
     datePublished: input.publishedAt,
     dateModified: input.modifiedAt || input.publishedAt,
+    ...(input.category && { articleSection: input.category }),
+    ...(input.tags && input.tags.length > 0 && { keywords: input.tags.join(', ') }),
     author: {
       '@type': 'Person',
       name: input.author,
       description: input.authorBio,
+      url: 'https://x.com/ivco_fisher',
     },
     publisher: {
       '@type': 'Organization',

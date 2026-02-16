@@ -1,5 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import type { Category } from '@/payload-types'
+import Link from 'next/link'
 import React from 'react'
 
 /** Force dynamic rendering — CMS content must be fresh, not build-time cached */
@@ -13,7 +15,7 @@ export default async function HomePage() {
     where: { status: { equals: 'published' } },
     sort: '-publishedAt',
     limit: 20,
-    depth: 2,
+    depth: 1,
   })
 
   return (
@@ -25,9 +27,11 @@ export default async function HomePage() {
       </p>
 
       <ul className="post-list">
-        {posts.docs.map((post: any) => (
+        {posts.docs.map((post) => {
+          const cat = post.category && typeof post.category === 'object' ? (post.category as Category) : null
+          return (
           <li key={post.id}>
-            <a href={`/posts/${post.slug}`}>
+            <Link href={`/posts/${post.slug}`}>
               <h2>{post.title}</h2>
               <p className="post-meta">
                 {post.contentType && post.contentType !== 'article' && (
@@ -42,14 +46,13 @@ export default async function HomePage() {
                     day: 'numeric',
                   })}
                 {post.readingTime && ` · ${post.readingTime} min read`}
-                {post.category &&
-                  typeof post.category === 'object' &&
-                  ` · ${post.category.name}`}
+                {cat && ` · ${cat.name}`}
               </p>
               {post.excerpt && <p className="post-excerpt">{post.excerpt}</p>}
-            </a>
+            </Link>
           </li>
-        ))}
+          )
+        })}
         {posts.docs.length === 0 && <p>No posts yet.</p>}
       </ul>
     </div>
