@@ -28,7 +28,7 @@ async function safeFindAll(payload: any, options: { collection: string; [k: stri
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const payload = await getPayload({ config: await config })
 
-  const [posts, tags, series] = await Promise.all([
+  const [posts, tags, series, categories] = await Promise.all([
     safeFindAll(payload, {
       collection: 'posts',
       where: { status: { equals: 'published' } },
@@ -40,6 +40,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     safeFindAll(payload, {
       collection: 'series',
+      select: { slug: true, updatedAt: true },
+    }),
+    safeFindAll(payload, {
+      collection: 'categories',
       select: { slug: true, updatedAt: true },
     }),
   ])
@@ -65,6 +69,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
+  const categoryEntries: MetadataRoute.Sitemap = categories.map((category: any) => ({
+    url: `https://ivco.ai/categories/${category.slug}`,
+    lastModified: category.updatedAt || undefined,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+
   return [
     {
       url: 'https://ivco.ai',
@@ -75,5 +86,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...postEntries,
     ...tagEntries,
     ...seriesEntries,
+    ...categoryEntries,
   ]
 }
