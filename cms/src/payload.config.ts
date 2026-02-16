@@ -35,6 +35,8 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
       max: 2,
+      idleTimeoutMillis: 5000,
+      connectionTimeoutMillis: 10000,
     },
   }),
   sharp,
