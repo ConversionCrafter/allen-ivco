@@ -26,66 +26,77 @@ async function safeFindAll(payload: any, options: { collection: string; [k: stri
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const payload = await getPayload({ config: await config })
+  try {
+    const payload = await getPayload({ config: await config })
 
-  const [posts, tags, series, categories] = await Promise.all([
-    safeFindAll(payload, {
+    // Fetch sequentially to reduce concurrent DB connections on small poolers.
+    const posts = await safeFindAll(payload, {
       collection: 'posts',
       where: { status: { equals: 'published' } },
       select: { slug: true, updatedAt: true, publishedAt: true },
-    }),
-    safeFindAll(payload, {
+    })
+    const tags = await safeFindAll(payload, {
       collection: 'tags',
       select: { slug: true, updatedAt: true },
-    }),
-    safeFindAll(payload, {
+    })
+    const series = await safeFindAll(payload, {
       collection: 'series',
       select: { slug: true, updatedAt: true },
-    }),
-    safeFindAll(payload, {
+    })
+    const categories = await safeFindAll(payload, {
       collection: 'categories',
       select: { slug: true, updatedAt: true },
-    }),
-  ])
+    })
 
-  const postEntries: MetadataRoute.Sitemap = posts.map((post: any) => ({
-    url: `https://ivco.ai/posts/${post.slug}`,
-    lastModified: post.updatedAt || post.publishedAt || undefined,
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+    const postEntries: MetadataRoute.Sitemap = posts.map((post: any) => ({
+      url: `https://ivco.ai/posts/${post.slug}`,
+      lastModified: post.updatedAt || post.publishedAt || undefined,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    }))
 
-  const tagEntries: MetadataRoute.Sitemap = tags.map((tag: any) => ({
-    url: `https://ivco.ai/tags/${tag.slug}`,
-    lastModified: tag.updatedAt || undefined,
-    changeFrequency: 'monthly' as const,
-    priority: 0.5,
-  }))
+    const tagEntries: MetadataRoute.Sitemap = tags.map((tag: any) => ({
+      url: `https://ivco.ai/tags/${tag.slug}`,
+      lastModified: tag.updatedAt || undefined,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    }))
 
-  const seriesEntries: MetadataRoute.Sitemap = series.map((s: any) => ({
-    url: `https://ivco.ai/series/${s.slug}`,
-    lastModified: s.updatedAt || undefined,
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
+    const seriesEntries: MetadataRoute.Sitemap = series.map((s: any) => ({
+      url: `https://ivco.ai/series/${s.slug}`,
+      lastModified: s.updatedAt || undefined,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
 
-  const categoryEntries: MetadataRoute.Sitemap = categories.map((category: any) => ({
-    url: `https://ivco.ai/categories/${category.slug}`,
-    lastModified: category.updatedAt || undefined,
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
+    const categoryEntries: MetadataRoute.Sitemap = categories.map((category: any) => ({
+      url: `https://ivco.ai/categories/${category.slug}`,
+      lastModified: category.updatedAt || undefined,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
 
-  return [
-    {
-      url: 'https://ivco.ai',
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    ...postEntries,
-    ...tagEntries,
-    ...seriesEntries,
-    ...categoryEntries,
-  ]
+    return [
+      {
+        url: 'https://ivco.ai',
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 1,
+      },
+      ...postEntries,
+      ...tagEntries,
+      ...seriesEntries,
+      ...categoryEntries,
+    ]
+  } catch (err) {
+    console.error('[sitemap] Fatal error generating sitemap:', err instanceof Error ? err.message : err)
+    return [
+      {
+        url: 'https://ivco.ai',
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 1,
+      },
+    ]
+  }
 }
