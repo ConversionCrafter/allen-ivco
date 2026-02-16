@@ -6,6 +6,9 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Author, Category, Media, Tag, Series as SeriesType } from '@/payload-types'
 import { generateArticleSchema, generateFAQSchema } from '@/lib/structured-data'
 
+/** Force dynamic rendering — CMS content must be fresh, not build-time cached */
+export const dynamic = 'force-dynamic'
+
 /** Deduplicate Payload query between PostPage and generateMetadata (React cache) */
 const getPostBySlug = cache(async (slug: string) => {
   const payload = await getPayload({ config: await config })

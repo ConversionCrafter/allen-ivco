@@ -2,6 +2,9 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import React from 'react'
 
+/** Force dynamic rendering — CMS content must be fresh, not build-time cached */
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
   const payload = await getPayload({ config: await config })
 

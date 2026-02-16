@@ -2,6 +2,9 @@ import type { MetadataRoute } from 'next'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
+/** Force dynamic rendering — sitemap must reflect current CMS state */
+export const dynamic = 'force-dynamic'
+
 /** Safe query wrapper — returns empty docs when table doesn't exist yet (pre-migration build) */
 async function safeFind(payload: any, options: any): Promise<{ docs: any[] }> {
   try {
