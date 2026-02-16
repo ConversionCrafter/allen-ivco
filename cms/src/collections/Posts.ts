@@ -4,7 +4,7 @@ export const Posts: CollectionConfig = {
   slug: 'posts',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'author', 'category', 'status', 'publishedAt'],
+    defaultColumns: ['title', 'author', 'category', 'contentType', 'status', 'publishedAt'],
     group: 'Blog',
   },
   access: {
@@ -36,6 +36,19 @@ export const Posts: CollectionConfig = {
       },
     },
     {
+      name: 'contentType',
+      type: 'select',
+      required: true,
+      defaultValue: 'article',
+      label: 'Content Type',
+      options: [
+        { label: 'Article', value: 'article' },
+        { label: 'Research Report', value: 'research-report' },
+        { label: 'Tool Guide', value: 'tool-guide' },
+        { label: 'Market Brief', value: 'market-brief' },
+      ],
+    },
+    {
       name: 'author',
       type: 'relationship',
       relationTo: 'authors',
@@ -65,15 +78,57 @@ export const Posts: CollectionConfig = {
     },
     {
       name: 'tags',
-      type: 'array',
+      type: 'relationship',
+      relationTo: 'tags',
+      hasMany: true,
       label: 'Tags',
-      fields: [
-        {
-          name: 'tag',
-          type: 'text',
-          required: true,
-        },
+    },
+    {
+      name: 'readingTime',
+      type: 'number',
+      label: 'Reading Time (min)',
+      admin: {
+        description: 'Estimated reading time in minutes',
+      },
+    },
+    {
+      name: 'difficulty',
+      type: 'select',
+      defaultValue: 'intermediate',
+      label: 'Difficulty',
+      options: [
+        { label: 'Beginner', value: 'beginner' },
+        { label: 'Intermediate', value: 'intermediate' },
+        { label: 'Advanced', value: 'advanced' },
       ],
+    },
+    {
+      name: 'series',
+      type: 'relationship',
+      relationTo: 'series',
+      label: 'Series',
+      admin: {
+        description: 'Optional — assign to a series for sequential reading',
+      },
+    },
+    {
+      name: 'seriesOrder',
+      type: 'number',
+      defaultValue: 0,
+      label: 'Series Order',
+      admin: {
+        description: 'Position within the series (0-indexed)',
+      },
+    },
+    {
+      name: 'relatedPosts',
+      type: 'relationship',
+      relationTo: 'posts',
+      hasMany: true,
+      label: 'Related Posts',
+      admin: {
+        description: 'Manually curated related articles',
+      },
     },
     {
       name: 'relatedCompany',
@@ -206,7 +261,43 @@ export const Posts: CollectionConfig = {
           required: true,
           label: 'Author Bio (for this article)',
           admin: {
-            description: 'E-E-A-T signal — author bio specific to this article\'s topic',
+            description: "E-E-A-T signal — author bio specific to this article's topic",
+          },
+        },
+      ],
+    },
+
+    // === Provenance (DNA: 有文件 — track content origin) ===
+    {
+      name: 'provenance',
+      type: 'group',
+      label: 'Provenance',
+      admin: {
+        description: 'Content origin tracking (Documentation DNA)',
+      },
+      fields: [
+        {
+          name: 'sourceAgent',
+          type: 'text',
+          label: 'Source Agent',
+          admin: {
+            description: "Who drafted this: 'fisher' | 'jane' | 'chi' | 'codex' | 'council'",
+          },
+        },
+        {
+          name: 'sourceDoc',
+          type: 'text',
+          label: 'Source Document',
+          admin: {
+            description: 'Source document path (e.g. design doc, research file)',
+          },
+        },
+        {
+          name: 'sourceSession',
+          type: 'text',
+          label: 'Source Session',
+          admin: {
+            description: 'Claude session ID (optional)',
           },
         },
       ],

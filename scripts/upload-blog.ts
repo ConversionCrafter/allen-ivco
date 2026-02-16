@@ -378,12 +378,56 @@ async function apiPost(collection: string, data: any): Promise<any> {
 
 // ─── Main Upload Logic ───────────────────────────────────────────
 
-const CATEGORY_SLUGS = ['framework', 'case-study', 'brand-story', 'opinion']
-const CATEGORY_NAMES: Record<string, string> = {
-  framework: 'Framework',
+/** Tag display names — slug → human-readable */
+const TAG_NAMES: Record<string, string> = {
+  buffett: 'Buffett',
+  'owner-earnings': 'Owner Earnings',
+  'allen-framework': 'Allen Framework',
+  valuation: 'Valuation',
+  dcf: 'DCF',
+  tsmc: 'TSMC',
+  'confidence-coefficient': 'Confidence Coefficient',
+  'reality-coefficient': 'Reality Coefficient',
+  'intrinsic-value': 'Intrinsic Value',
+  munger: 'Munger',
+  fisher: 'Fisher',
+  graham: 'Graham',
+  'ai-native': 'AI Native',
+  'research-engine': 'Research Engine',
+  python: 'Python',
+  'open-source': 'Open Source',
+  philosophy: 'Philosophy',
+  cagr: 'CAGR',
   'case-study': 'Case Study',
-  'brand-story': 'Brand Story',
-  opinion: 'Opinion',
+  'value-investing': 'Value Investing',
+}
+
+const CATEGORIES: { slug: string; name: string; description: string; color: string }[] = [
+  { slug: 'framework', name: 'Framework', description: 'Core methodology and investment philosophy', color: '#2563eb' },
+  { slug: 'case-study', name: 'Case Study', description: 'Real-world company analyses using the Allen Framework', color: '#059669' },
+  { slug: 'brand-story', name: 'Brand Story', description: 'The story behind IVCO and its mission', color: '#7c3aed' },
+  { slug: 'opinion', name: 'Opinion', description: 'Market commentary and investment perspectives', color: '#d97706' },
+  { slug: 'education', name: 'Education', description: 'Foundational value investing concepts explained', color: '#0891b2' },
+  { slug: 'research-report', name: 'Research Report', description: 'Deep-dive company research and analysis', color: '#dc2626' },
+  { slug: 'tool-guide', name: 'Tool Guide', description: 'Guides for IVCO CLI tools and automation', color: '#4f46e5' },
+  { slug: 'market-brief', name: 'Market Brief', description: 'Quick market observations and signals', color: '#ea580c' },
+]
+
+/** Source agent mapping per article slug */
+const PROVENANCE: Record<string, { sourceAgent: string; sourceDoc: string }> = {
+  'allen-framework-vs-buffett-owner-earnings-1986': { sourceAgent: 'fisher', sourceDoc: 'docs/blog/01-allen-framework-vs-buffett-oe.md' },
+  'tsmc-intrinsic-value-case-study': { sourceAgent: 'fisher', sourceDoc: 'docs/blog/02-tsmc-case-study.md' },
+  'why-we-built-ivco': { sourceAgent: 'fisher', sourceDoc: 'docs/blog/03-why-we-built-ivco.md' },
+  'what-are-owner-earnings': { sourceAgent: 'fisher', sourceDoc: 'docs/blog/04-what-are-owner-earnings.md' },
+  'three-stage-dcf-philosophy-to-algorithm': { sourceAgent: 'chi', sourceDoc: 'docs/blog/05-three-stage-dcf-philosophy-to-algorithm.md' },
+  'confidence-coefficient-why-a-range': { sourceAgent: 'fisher', sourceDoc: 'docs/blog/06-confidence-coefficient-why-a-range.md' },
+  'how-ivco-became-an-intelligence': { sourceAgent: 'jane', sourceDoc: 'docs/blog/07-how-ivco-became-an-intelligence.md' },
+}
+
+/** Estimate reading time from word count (200 WPM average) */
+function estimateReadingTime(text: string): number {
+  const wordCount = text.split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.ceil(wordCount / 200))
 }
 
 const AUTHOR_BIOS: Record<string, string> = {
@@ -428,23 +472,54 @@ async function main() {
     console.log(`  → Created ✅ (id: ${authorId})`)
   }
 
-  // 2. Create Categories
+  // 2. Create Categories (with new fields: description, color, order)
   console.log('\n📁 Creating categories...')
   const categoryMap: Record<string, number> = {}
-  for (const slug of CATEGORY_SLUGS) {
-    const existing = await apiGet('categories', `where[slug][equals]=${slug}&limit=1`)
+  for (let i = 0; i < CATEGORIES.length; i++) {
+    const cat = CATEGORIES[i]
+    const existing = await apiGet('categories', `where[slug][equals]=${cat.slug}&limit=1`)
     if (existing.docs?.length > 0) {
-      categoryMap[slug] = existing.docs[0].id
-      console.log(`  ${CATEGORY_NAMES[slug]} → exists (id: ${categoryMap[slug]})`)
+      categoryMap[cat.slug] = existing.docs[0].id
+      console.log(`  ${cat.name} → exists (id: ${categoryMap[cat.slug]})`)
     } else {
-      const created = await apiPost('categories', { name: CATEGORY_NAMES[slug], slug })
-      categoryMap[slug] = created.doc.id
-      console.log(`  ${CATEGORY_NAMES[slug]} → created ✅ (id: ${categoryMap[slug]})`)
+      const created = await apiPost('categories', {
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        color: cat.color,
+        order: i,
+      })
+      categoryMap[cat.slug] = created.doc.id
+      console.log(`  ${cat.name} → created ✅ (id: ${categoryMap[cat.slug]})`)
     }
   }
 
-  // 3. Read and upload blog articles
-  const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md')).sort()
+  // 3. Collect all unique tags from articles, then create Tag records
+  console.log('\n🏷️  Creating tags...')
+  const allFiles = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md')).sort()
+  const allTagSlugs = new Set<string>()
+  for (const file of allFiles) {
+    const raw = fs.readFileSync(path.join(BLOG_DIR, file), 'utf-8')
+    const { frontmatter } = parseFrontmatter(raw)
+    frontmatter.tags.forEach((t) => allTagSlugs.add(t))
+  }
+
+  const tagMap: Record<string, number> = {}
+  for (const tagSlug of allTagSlugs) {
+    const existing = await apiGet('tags', `where[slug][equals]=${tagSlug}&limit=1`)
+    if (existing.docs?.length > 0) {
+      tagMap[tagSlug] = existing.docs[0].id
+      console.log(`  ${tagSlug} → exists (id: ${tagMap[tagSlug]})`)
+    } else {
+      const tagName = TAG_NAMES[tagSlug] || tagSlug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      const created = await apiPost('tags', { name: tagName, slug: tagSlug })
+      tagMap[tagSlug] = created.doc.id
+      console.log(`  ${tagName} → created ✅ (id: ${tagMap[tagSlug]})`)
+    }
+  }
+
+  // 4. Read and upload blog articles
+  const files = allFiles
   console.log(`\n📝 Uploading ${files.length} articles...\n`)
 
   for (const file of files) {
@@ -483,14 +558,28 @@ async function main() {
     const seoTitle = frontmatter.title.length > 60 ? frontmatter.title.slice(0, 57) + '...' : frontmatter.title
     const seoDesc = frontmatter.description.length > 160 ? frontmatter.description.slice(0, 157) + '...' : frontmatter.description
 
+    // Map tag slugs to Tag collection IDs
+    const tagIds = frontmatter.tags
+      .map((t) => tagMap[t])
+      .filter((id): id is number => id !== undefined)
+
+    // Estimate reading time
+    const readingTime = estimateReadingTime(body)
+
+    // Provenance
+    const prov = PROVENANCE[frontmatter.slug] || { sourceAgent: 'fisher', sourceDoc: '' }
+
     const postData = {
       title: frontmatter.title,
       slug: frontmatter.slug,
+      contentType: 'article' as const,
       author: authorId,
       content: lexical,
       excerpt: frontmatter.description,
       category: categoryMap[frontmatter.category] || categoryMap['framework'],
-      tags: frontmatter.tags.map((tag) => ({ tag })),
+      tags: tagIds,
+      readingTime,
+      difficulty: 'intermediate' as const,
       status: 'published',
       publishedAt: new Date().toISOString(),
       seo: { title: seoTitle, description: seoDesc },
@@ -498,6 +587,10 @@ async function main() {
       schema: {
         enableHowTo: false,
         authorBio: AUTHOR_BIOS[frontmatter.slug] || AUTHOR_BIO,
+      },
+      provenance: {
+        sourceAgent: prov.sourceAgent,
+        sourceDoc: prov.sourceDoc,
       },
     }
 

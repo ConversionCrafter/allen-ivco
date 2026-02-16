@@ -20,7 +20,7 @@ export function generateArticleSchema(input: ArticleInput) {
     '@type': 'Article',
     headline: input.title,
     description: input.description,
-    url: `https://ivco.io/${input.slug}`,
+    url: `https://ivco.ai/${input.slug}`,
     image: input.ogImageUrl,
     datePublished: input.publishedAt,
     dateModified: input.modifiedAt || input.publishedAt,
@@ -32,7 +32,7 @@ export function generateArticleSchema(input: ArticleInput) {
     publisher: {
       '@type': 'Organization',
       name: 'IVCO',
-      url: 'https://ivco.io',
+      url: 'https://ivco.ai',
     },
   }
 }

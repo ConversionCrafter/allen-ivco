@@ -3,7 +3,7 @@ import config from '@/payload.config'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
-import type { Author, Category, Media } from '@/payload-types'
+import type { Author, Category, Media, Tag, Series as SeriesType } from '@/payload-types'
 import { generateArticleSchema, generateFAQSchema } from '@/lib/structured-data'
 
 /** Deduplicate Payload query between PostPage and generateMetadata (React cache) */
@@ -44,6 +44,10 @@ export default async function PostPage({
   const author = post.author as Author
   const category = post.category as Category
   const ogImage = resolveOgImage(post.seo.ogImage)
+  const tags = (post.tags || []).filter(
+    (t): t is Tag => typeof t === 'object' && t !== null && 'name' in t,
+  )
+  const series = post.series && typeof post.series === 'object' ? (post.series as SeriesType) : null
 
   // Generate structured data
   const ogImageUrl =
@@ -58,7 +62,7 @@ export default async function PostPage({
     authorBio: post.schema.authorBio,
     publishedAt: post.publishedAt || post.createdAt,
     modifiedAt: post.updatedAt,
-    ogImageUrl: ogImageUrl.startsWith('/') ? `https://ivco.io${ogImageUrl}` : ogImageUrl,
+    ogImageUrl: ogImageUrl.startsWith('/') ? `https://ivco.ai${ogImageUrl}` : ogImageUrl,
   })
 
   const faqSchema =
@@ -70,6 +74,31 @@ export default async function PostPage({
           })),
         )
       : null
+
+  // Fetch series posts for navigation
+  let seriesPosts: { title: string; slug: string; seriesOrder: number }[] = []
+  if (series) {
+    const payload = await getPayload({ config: await config })
+    const result = await payload.find({
+      collection: 'posts',
+      where: {
+        series: { equals: series.id },
+        status: { equals: 'published' },
+      },
+      sort: 'seriesOrder',
+      limit: 50,
+      select: { title: true, slug: true, seriesOrder: true },
+    })
+    seriesPosts = result.docs.map((p) => ({
+      title: p.title,
+      slug: p.slug,
+      seriesOrder: (p as any).seriesOrder || 0,
+    }))
+  }
+
+  const currentIndex = seriesPosts.findIndex((p) => p.slug === post.slug)
+  const prevPost = currentIndex > 0 ? seriesPosts[currentIndex - 1] : null
+  const nextPost = currentIndex < seriesPosts.length - 1 ? seriesPosts[currentIndex + 1] : null
 
   return (
     <article>
@@ -102,6 +131,12 @@ export default async function PostPage({
             })}
           </>
         )}
+        {(post as any).readingTime && (
+          <>
+            {' '}
+            &middot; {(post as any).readingTime} min read
+          </>
+        )}
         {category && (
           <>
             {' '}
@@ -109,6 +144,49 @@ export default async function PostPage({
           </>
         )}
       </p>
+
+      {/* Tags */}
+      {tags.length > 0 && (
+        <div className="post-tags" style={{ margin: '0.5rem 0 1.5rem' }}>
+          {tags.map((tag) => (
+            <span
+              key={tag.id}
+              style={{
+                display: 'inline-block',
+                padding: '2px 8px',
+                marginRight: '6px',
+                fontSize: '0.85rem',
+                backgroundColor: '#f1f5f9',
+                borderRadius: '4px',
+                color: '#475569',
+              }}
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Series navigation header */}
+      {series && (
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            backgroundColor: '#f8fafc',
+            borderRadius: '6px',
+            marginBottom: '1.5rem',
+            fontSize: '0.9rem',
+          }}
+        >
+          <strong>Series:</strong> {series.name}
+          {seriesPosts.length > 1 && (
+            <span style={{ color: '#64748b' }}>
+              {' '}
+              ({currentIndex + 1} of {seriesPosts.length})
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="article-content">
         <RichText data={post.content} />
@@ -127,6 +205,31 @@ export default async function PostPage({
             </div>
           ))}
         </section>
+      )}
+
+      {/* Series Navigation — prev/next */}
+      {series && (prevPost || nextPost) && (
+        <nav
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '3rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid #e2e8f0',
+            fontSize: '0.9rem',
+          }}
+        >
+          {prevPost ? (
+            <a href={`/posts/${prevPost.slug}`}>&larr; {prevPost.title}</a>
+          ) : (
+            <span />
+          )}
+          {nextPost ? (
+            <a href={`/posts/${nextPost.slug}`}>{nextPost.title} &rarr;</a>
+          ) : (
+            <span />
+          )}
+        </nav>
       )}
 
       {/* Author Bio */}

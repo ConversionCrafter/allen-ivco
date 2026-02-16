@@ -14,7 +14,7 @@ export const Categories: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-      label: '分類名稱',
+      label: 'Category Name',
     },
     {
       name: 'slug',
@@ -24,6 +24,31 @@ export const Categories: CollectionConfig = {
       label: 'Slug',
       admin: {
         description: 'URL-friendly name (e.g. value-investing)',
+      },
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      label: 'Description',
+      admin: {
+        description: 'Category description for category pages',
+      },
+    },
+    {
+      name: 'color',
+      type: 'text',
+      label: 'Color',
+      admin: {
+        description: 'HEX color for OG image badge (e.g. #2563eb)',
+      },
+    },
+    {
+      name: 'order',
+      type: 'number',
+      label: 'Sort Order',
+      defaultValue: 0,
+      admin: {
+        description: 'Lower number = higher priority in display',
       },
     },
   ],
