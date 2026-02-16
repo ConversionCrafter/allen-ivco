@@ -8,6 +8,10 @@ const categoryColors: Record<string, string> = {
   'case-study': '#059669',
   'brand-story': '#7c3aed',
   opinion: '#d97706',
+  education: '#0891b2',
+  'research-report': '#dc2626',
+  'tool-guide': '#4f46e5',
+  'market-brief': '#ea580c',
 }
 
 export async function GET(request: NextRequest) {

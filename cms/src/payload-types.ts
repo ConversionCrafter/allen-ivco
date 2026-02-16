@@ -73,6 +73,8 @@ export interface Config {
     companies: Company;
     'company-events': CompanyEvent;
     categories: Category;
+    tags: Tag;
+    series: Series;
     posts: Post;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -87,6 +89,8 @@ export interface Config {
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
     'company-events': CompanyEventsSelect<false> | CompanyEventsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
+    series: SeriesSelect<false> | SeriesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -190,174 +194,47 @@ export interface Author {
 export interface Company {
   id: number;
   /**
-   * 公司全名（如：Taiwan Semiconductor Manufacturing Company）
+   * Full company name (e.g. Taiwan Semiconductor Manufacturing Company)
    */
   name: string;
   /**
-   * 如：2330.TW, AAPL, MSFT
+   * e.g. 2330.TW, AAPL, MSFT
    */
   ticker: string;
-  /**
-   * Primary stock exchange listing
-   */
   exchange?: ('NYSE' | 'NASDAQ' | 'TPE' | 'HKEX' | 'other') | null;
   status: 'watching' | 'analyzing' | 'holding' | 'excluded';
-  /**
-   * 如：半導體、軟體、金融
-   */
   industry?: string | null;
-  /**
-   * 如：Taiwan, USA, China
-   */
   country?: string | null;
   /**
-   * IR 網站或公司官網
+   * IR website or company homepage
    */
   website?: string | null;
   /**
-   * routine=季報/年報時收集, enhanced=每週, intensive=每日
+   * Public company profile for frontend display
    */
-  monitoring_level?: ('routine' | 'enhanced' | 'intensive') | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
-   * 用逗號分隔，如：paypal, $pypl, dan schulman
+   * Company logo image URL
    */
-  monitoring_keywords?: string | null;
+  logoUrl?: string | null;
   /**
-   * 其他重要資訊或觀察
+   * Internal observations and important context
    */
   notes?: string | null;
-  /**
-   * 管理層 Commitment 達成率（0-100%）
-   */
-  integrity_score?: number | null;
-  integrity_status?: ('pass' | 'warning' | 'fail') | null;
-  /**
-   * 記錄管理層承諾與實際達成情況
-   */
-  integrity_notes?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * 以億或百萬為單位，須註明幣別
-   */
-  latest_oe?: number | null;
-  oe_currency?: ('TWD' | 'USD' | 'CNY') | null;
-  /**
-   * 業主盈餘的 7 年平均複合成長率
-   */
-  historical_cagr_7y?: number | null;
-  /**
-   * 流通在外股數
-   */
-  total_shares?: number | null;
-  /**
-   * Allen Framework parameter: fraction of capex that is maintenance (e.g. 0.20 for TSMC)
-   */
-  maintenance_capex_ratio?: number | null;
-  /**
-   * 財報來源、計算方法、特殊調整等
-   */
-  historical_notes?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * 保守估計的信心係數（如 0.8, 1.0）
-   */
-  confidence_low?: number | null;
-  /**
-   * 樂觀估計的信心係數（如 1.3, 1.5）
-   */
-  confidence_high?: number | null;
-  /**
-   * 計算結果：Latest OE × Confidence Low
-   */
-  iv_total_low?: number | null;
-  /**
-   * 計算結果：Latest OE × Confidence High
-   */
-  iv_total_high?: number | null;
-  /**
-   * 計算結果：IV Total Low / Total Shares
-   */
-  iv_per_share_low?: number | null;
-  /**
-   * 計算結果：IV Total High / Total Shares
-   */
-  iv_per_share_high?: number | null;
-  /**
-   * 重大資本支出、新產品、市場擴張等
-   */
-  forward_factors?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * 當前股價
-   */
-  current_price?: number | null;
-  price_updated_at?: string | null;
-  /**
-   * (Current Price / IV Mid) - 1
-   */
-  deviation_percentage?: number | null;
-  investment_decision?: ('buy' | 'hold' | 'watch' | 'sell') | null;
-  /**
-   * 模擬股價大跌 50% 時的質押保證金缺口
-   */
-  stress_test_50?: number | null;
-  /**
-   * 決策依據、風險評估、操作計畫
-   */
-  navigation_notes?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -409,6 +286,61 @@ export interface Category {
    * URL-friendly name (e.g. value-investing)
    */
   slug: string;
+  /**
+   * Category description for category pages
+   */
+  description?: string | null;
+  /**
+   * HEX color for OG image badge (e.g. #2563eb)
+   */
+  color?: string | null;
+  /**
+   * Lower number = higher priority in display
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  /**
+   * Display name (e.g. "Owner Earnings")
+   */
+  name: string;
+  /**
+   * URL-friendly name (e.g. "owner-earnings")
+   */
+  slug: string;
+  /**
+   * Optional description for /tags/{slug} page
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "series".
+ */
+export interface Series {
+  id: number;
+  /**
+   * e.g. "Allen Framework Deep Dive"
+   */
+  name: string;
+  /**
+   * URL path (e.g. "allen-framework-deep-dive")
+   */
+  slug: string;
+  /**
+   * Series overview shown on series page
+   */
+  description?: string | null;
+  coverImage?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -423,6 +355,7 @@ export interface Post {
    * URL path (e.g. tsmc-intrinsic-value-case-study)
    */
   slug: string;
+  contentType: 'article' | 'research-report' | 'tool-guide' | 'market-brief';
   author: number | Author;
   content: {
     root: {
@@ -444,12 +377,24 @@ export interface Post {
    */
   excerpt?: string | null;
   category: number | Category;
-  tags?:
-    | {
-        tag: string;
-        id?: string | null;
-      }[]
-    | null;
+  tags?: (number | Tag)[] | null;
+  /**
+   * Estimated reading time in minutes
+   */
+  readingTime?: number | null;
+  difficulty?: ('beginner' | 'intermediate' | 'advanced') | null;
+  /**
+   * Optional — assign to a series for sequential reading
+   */
+  series?: (number | null) | Series;
+  /**
+   * Position within the series (0-indexed)
+   */
+  seriesOrder?: number | null;
+  /**
+   * Manually curated related articles
+   */
+  relatedPosts?: (number | Post)[] | null;
   /**
    * Link to company if this is a case study or analysis
    */
@@ -492,6 +437,23 @@ export interface Post {
      * E-E-A-T signal — author bio specific to this article's topic
      */
     authorBio: string;
+  };
+  /**
+   * Content origin tracking (Documentation DNA)
+   */
+  provenance?: {
+    /**
+     * Who drafted this: 'fisher' | 'jane' | 'chi' | 'codex' | 'council'
+     */
+    sourceAgent?: string | null;
+    /**
+     * Source document path (e.g. design doc, research file)
+     */
+    sourceDoc?: string | null;
+    /**
+     * Claude session ID (optional)
+     */
+    sourceSession?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -543,6 +505,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
+      } | null)
+    | ({
+        relationTo: 'series';
+        value: number | Series;
       } | null)
     | ({
         relationTo: 'posts';
@@ -653,31 +623,9 @@ export interface CompaniesSelect<T extends boolean = true> {
   industry?: T;
   country?: T;
   website?: T;
-  monitoring_level?: T;
-  monitoring_keywords?: T;
+  description?: T;
+  logoUrl?: T;
   notes?: T;
-  integrity_score?: T;
-  integrity_status?: T;
-  integrity_notes?: T;
-  latest_oe?: T;
-  oe_currency?: T;
-  historical_cagr_7y?: T;
-  total_shares?: T;
-  maintenance_capex_ratio?: T;
-  historical_notes?: T;
-  confidence_low?: T;
-  confidence_high?: T;
-  iv_total_low?: T;
-  iv_total_high?: T;
-  iv_per_share_low?: T;
-  iv_per_share_high?: T;
-  forward_factors?: T;
-  current_price?: T;
-  price_updated_at?: T;
-  deviation_percentage?: T;
-  investment_decision?: T;
-  stress_test_50?: T;
-  navigation_notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -706,6 +654,32 @@ export interface CompanyEventsSelect<T extends boolean = true> {
 export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  description?: T;
+  color?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "series_select".
+ */
+export interface SeriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  coverImage?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -716,16 +690,17 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  contentType?: T;
   author?: T;
   content?: T;
   excerpt?: T;
   category?: T;
-  tags?:
-    | T
-    | {
-        tag?: T;
-        id?: T;
-      };
+  tags?: T;
+  readingTime?: T;
+  difficulty?: T;
+  series?: T;
+  seriesOrder?: T;
+  relatedPosts?: T;
   relatedCompany?: T;
   coverImage?: T;
   status?: T;
@@ -750,6 +725,13 @@ export interface PostsSelect<T extends boolean = true> {
     | {
         enableHowTo?: T;
         authorBio?: T;
+      };
+  provenance?:
+    | T
+    | {
+        sourceAgent?: T;
+        sourceDoc?: T;
+        sourceSession?: T;
       };
   updatedAt?: T;
   createdAt?: T;

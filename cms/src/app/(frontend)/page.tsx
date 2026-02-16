@@ -10,6 +10,7 @@ export default async function HomePage() {
     where: { status: { equals: 'published' } },
     sort: '-publishedAt',
     limit: 20,
+    depth: 2,
   })
 
   return (
@@ -25,15 +26,23 @@ export default async function HomePage() {
           <li key={post.id}>
             <a href={`/posts/${post.slug}`}>
               <h2>{post.title}</h2>
-              {post.publishedAt && (
-                <p className="post-meta">
-                  {new Date(post.publishedAt).toLocaleDateString('en-US', {
+              <p className="post-meta">
+                {post.contentType && post.contentType !== 'article' && (
+                  <span className="content-type-badge">
+                    {post.contentType.replace(/-/g, ' ')}
+                  </span>
+                )}
+                {post.publishedAt &&
+                  new Date(post.publishedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
                   })}
-                </p>
-              )}
+                {post.readingTime && ` · ${post.readingTime} min read`}
+                {post.category &&
+                  typeof post.category === 'object' &&
+                  ` · ${post.category.name}`}
+              </p>
               {post.excerpt && <p className="post-excerpt">{post.excerpt}</p>}
             </a>
           </li>
