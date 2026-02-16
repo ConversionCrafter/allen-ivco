@@ -517,16 +517,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "monitoring_level": {
-          "name": "monitoring_level",
-          "type": "enum_companies_monitoring_level",
-          "typeSchema": "public",
+        "description": {
+          "name": "description",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'routine'"
+          "notNull": false
         },
-        "monitoring_keywords": {
-          "name": "monitoring_keywords",
+        "logo_url": {
+          "name": "logo_url",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -534,141 +532,6 @@
         "notes": {
           "name": "notes",
           "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "integrity_score": {
-          "name": "integrity_score",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "integrity_status": {
-          "name": "integrity_status",
-          "type": "enum_companies_integrity_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "integrity_notes": {
-          "name": "integrity_notes",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "latest_oe": {
-          "name": "latest_oe",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "oe_currency": {
-          "name": "oe_currency",
-          "type": "enum_companies_oe_currency",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "historical_cagr_7y": {
-          "name": "historical_cagr_7y",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "total_shares": {
-          "name": "total_shares",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "maintenance_capex_ratio": {
-          "name": "maintenance_capex_ratio",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "historical_notes": {
-          "name": "historical_notes",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "confidence_low": {
-          "name": "confidence_low",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "confidence_high": {
-          "name": "confidence_high",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "iv_total_low": {
-          "name": "iv_total_low",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "iv_total_high": {
-          "name": "iv_total_high",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "iv_per_share_low": {
-          "name": "iv_per_share_low",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "iv_per_share_high": {
-          "name": "iv_per_share_high",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "forward_factors": {
-          "name": "forward_factors",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "current_price": {
-          "name": "current_price",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price_updated_at": {
-          "name": "price_updated_at",
-          "type": "timestamp(3) with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deviation_percentage": {
-          "name": "deviation_percentage",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "investment_decision": {
-          "name": "investment_decision",
-          "type": "enum_companies_investment_decision",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "stress_test_50": {
-          "name": "stress_test_50",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "navigation_notes": {
-          "name": "navigation_notes",
-          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -921,6 +784,25 @@
           "primaryKey": false,
           "notNull": true
         },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "color": {
+          "name": "color",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order": {
+          "name": "order",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp(3) with time zone",
@@ -990,41 +872,70 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.posts_tags": {
-      "name": "posts_tags",
+    "public.tags": {
+      "name": "tags",
       "schema": "",
       "columns": {
-        "_order": {
-          "name": "_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "_parent_id": {
-          "name": "_parent_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
         "id": {
           "name": "id",
-          "type": "varchar",
+          "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
-        "tag": {
-          "name": "tag",
+        "name": {
+          "name": "name",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {
-        "posts_tags_order_idx": {
-          "name": "posts_tags_order_idx",
+        "tags_slug_idx": {
+          "name": "tags_slug_idx",
           "columns": [
             {
-              "expression": "_order",
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tags_updated_at_idx": {
+          "name": "tags_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1035,11 +946,129 @@
           "method": "btree",
           "with": {}
         },
-        "posts_tags_parent_id_idx": {
-          "name": "posts_tags_parent_id_idx",
+        "tags_created_at_idx": {
+          "name": "tags_created_at_idx",
           "columns": [
             {
-              "expression": "_parent_id",
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.series": {
+      "name": "series",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cover_image_id": {
+          "name": "cover_image_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "series_slug_idx": {
+          "name": "series_slug_idx",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "series_cover_image_idx": {
+          "name": "series_cover_image_idx",
+          "columns": [
+            {
+              "expression": "cover_image_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "series_updated_at_idx": {
+          "name": "series_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "series_created_at_idx": {
+          "name": "series_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1052,17 +1081,17 @@
         }
       },
       "foreignKeys": {
-        "posts_tags_parent_id_fk": {
-          "name": "posts_tags_parent_id_fk",
-          "tableFrom": "posts_tags",
-          "tableTo": "posts",
+        "series_cover_image_id_media_id_fk": {
+          "name": "series_cover_image_id_media_id_fk",
+          "tableFrom": "series",
+          "tableTo": "media",
           "columnsFrom": [
-            "_parent_id"
+            "cover_image_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1182,6 +1211,14 @@
           "primaryKey": false,
           "notNull": true
         },
+        "content_type": {
+          "name": "content_type",
+          "type": "enum_posts_content_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'article'"
+        },
         "author_id": {
           "name": "author_id",
           "type": "integer",
@@ -1205,6 +1242,33 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "reading_time": {
+          "name": "reading_time",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "difficulty": {
+          "name": "difficulty",
+          "type": "enum_posts_difficulty",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'intermediate'"
+        },
+        "series_id": {
+          "name": "series_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "series_order": {
+          "name": "series_order",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
         },
         "related_company_id": {
           "name": "related_company_id",
@@ -1269,6 +1333,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "provenance_source_agent": {
+          "name": "provenance_source_agent",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provenance_source_doc": {
+          "name": "provenance_source_doc",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provenance_source_session": {
+          "name": "provenance_source_session",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp(3) with time zone",
@@ -1320,6 +1402,21 @@
           "columns": [
             {
               "expression": "category_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_series_idx": {
+          "name": "posts_series_idx",
+          "columns": [
+            {
+              "expression": "series_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1433,6 +1530,19 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
+        "posts_series_id_series_id_fk": {
+          "name": "posts_series_id_series_id_fk",
+          "tableFrom": "posts",
+          "tableTo": "series",
+          "columnsFrom": [
+            "series_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
         "posts_related_company_id_companies_id_fk": {
           "name": "posts_related_company_id_companies_id_fk",
           "tableFrom": "posts",
@@ -1470,6 +1580,171 @@
             "id"
           ],
           "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.posts_rels": {
+      "name": "posts_rels",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tags_id": {
+          "name": "tags_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "posts_id": {
+          "name": "posts_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "posts_rels_order_idx": {
+          "name": "posts_rels_order_idx",
+          "columns": [
+            {
+              "expression": "order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_rels_parent_idx": {
+          "name": "posts_rels_parent_idx",
+          "columns": [
+            {
+              "expression": "parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_rels_path_idx": {
+          "name": "posts_rels_path_idx",
+          "columns": [
+            {
+              "expression": "path",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_rels_tags_id_idx": {
+          "name": "posts_rels_tags_id_idx",
+          "columns": [
+            {
+              "expression": "tags_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "posts_rels_posts_id_idx": {
+          "name": "posts_rels_posts_id_idx",
+          "columns": [
+            {
+              "expression": "posts_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "posts_rels_parent_fk": {
+          "name": "posts_rels_parent_fk",
+          "tableFrom": "posts_rels",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "posts_rels_tags_fk": {
+          "name": "posts_rels_tags_fk",
+          "tableFrom": "posts_rels",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tags_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "posts_rels_posts_fk": {
+          "name": "posts_rels_posts_fk",
+          "tableFrom": "posts_rels",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "posts_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -1675,6 +1950,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "tags_id": {
+          "name": "tags_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "series_id": {
+          "name": "series_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "posts_id": {
           "name": "posts_id",
           "type": "integer",
@@ -1818,6 +2105,36 @@
           "method": "btree",
           "with": {}
         },
+        "payload_locked_documents_rels_tags_id_idx": {
+          "name": "payload_locked_documents_rels_tags_id_idx",
+          "columns": [
+            {
+              "expression": "tags_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payload_locked_documents_rels_series_id_idx": {
+          "name": "payload_locked_documents_rels_series_id_idx",
+          "columns": [
+            {
+              "expression": "series_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "payload_locked_documents_rels_posts_id_idx": {
           "name": "payload_locked_documents_rels_posts_id_idx",
           "columns": [
@@ -1919,6 +2236,32 @@
           "tableTo": "categories",
           "columnsFrom": [
             "categories_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_tags_fk": {
+          "name": "payload_locked_documents_rels_tags_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tags_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_series_fk": {
+          "name": "payload_locked_documents_rels_series_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "series",
+          "columnsFrom": [
+            "series_id"
           ],
           "columnsTo": [
             "id"
@@ -2267,43 +2610,6 @@
         "excluded"
       ]
     },
-    "public.enum_companies_monitoring_level": {
-      "name": "enum_companies_monitoring_level",
-      "schema": "public",
-      "values": [
-        "routine",
-        "enhanced",
-        "intensive"
-      ]
-    },
-    "public.enum_companies_integrity_status": {
-      "name": "enum_companies_integrity_status",
-      "schema": "public",
-      "values": [
-        "pass",
-        "warning",
-        "fail"
-      ]
-    },
-    "public.enum_companies_oe_currency": {
-      "name": "enum_companies_oe_currency",
-      "schema": "public",
-      "values": [
-        "TWD",
-        "USD",
-        "CNY"
-      ]
-    },
-    "public.enum_companies_investment_decision": {
-      "name": "enum_companies_investment_decision",
-      "schema": "public",
-      "values": [
-        "buy",
-        "hold",
-        "watch",
-        "sell"
-      ]
-    },
     "public.enum_company_events_source": {
       "name": "enum_company_events_source",
       "schema": "public",
@@ -2337,6 +2643,25 @@
         "pending"
       ]
     },
+    "public.enum_posts_content_type": {
+      "name": "enum_posts_content_type",
+      "schema": "public",
+      "values": [
+        "article",
+        "research-report",
+        "tool-guide",
+        "market-brief"
+      ]
+    },
+    "public.enum_posts_difficulty": {
+      "name": "enum_posts_difficulty",
+      "schema": "public",
+      "values": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ]
+    },
     "public.enum_posts_status": {
       "name": "enum_posts_status",
       "schema": "public",
@@ -2358,6 +2683,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "9cc965ad-05fe-43c5-84d1-c97be941d73c",
+  "id": "37211adc-f814-475d-9941-d2e0df567392",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
