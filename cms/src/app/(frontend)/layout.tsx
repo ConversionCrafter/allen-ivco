@@ -2,6 +2,7 @@ import React from 'react'
 import './globals.css'
 
 export const metadata = {
+  metadataBase: new URL('https://ivco.ai'),
   title: 'IVCO Fisher — Value Investing Observatory',
   description:
     'Intrinsic Value Confidence Observatory. Facts compound. Noise fades.',

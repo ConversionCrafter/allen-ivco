@@ -467,9 +467,9 @@ export interface Post {
      */
     description: string;
     /**
-     * Social sharing preview image (1200x630px recommended)
+     * Social sharing preview (1200x630). Falls back to /api/og dynamic generation if empty.
      */
-    ogImage: number | Media;
+    ogImage?: (number | null) | Media;
     /**
      * Only if cross-posted elsewhere
      */

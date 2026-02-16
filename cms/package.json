@@ -20,9 +20,10 @@
   "dependencies": {
     "@payloadcms/db-postgres": "3.75.0",
     "@payloadcms/next": "3.75.0",
-    "@payloadcms/plugin-mcp": "^3.75.0",
+    "@payloadcms/plugin-mcp": "3.75.0",
     "@payloadcms/richtext-lexical": "3.75.0",
     "@payloadcms/ui": "3.75.0",
+    "@vercel/og": "^0.8.6",
     "cross-env": "^7.0.3",
     "dotenv": "16.4.7",
     "graphql": "^16.8.1",

@@ -143,10 +143,9 @@ export const Posts: CollectionConfig = {
           name: 'ogImage',
           type: 'upload',
           relationTo: 'media',
-          required: true,
           label: 'OG Image',
           admin: {
-            description: 'Social sharing preview image (1200x630px recommended)',
+            description: 'Social sharing preview (1200x630). Falls back to /api/og dynamic generation if empty.',
           },
         },
         {
